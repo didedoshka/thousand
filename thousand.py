@@ -145,6 +145,7 @@ class Thousand(gym.Env):
         move = self.players[self.turn].make_a_move(self._get_observation())
         correct_moves = self._correct_moves()
         if move not in correct_moves:
+            logging.warning(f'move {move} of player{self.turn} was incorrect')
             move = self.np_random.choice(correct_moves)
         return move
 
@@ -207,15 +208,17 @@ class Thousand(gym.Env):
             observation = self._get_observation()
             return observation, -10, False, False, {}
         rewards = [self._proceed_a_move(action)]
-        rewards += self._play_until_agent()
+        terminated = self._is_terminated()
+        if not terminated:
+            rewards += self._play_until_agent()
         reward = 0
 
-        for pl, r in rewards:
-            if pl == 2:
-                reward += r
+        for player, one_reward in rewards:
+            if player == 2:
+                reward += one_reward
 
-        observation = self._get_observation()
         terminated = self._is_terminated()
+        observation = self._get_observation()
         return observation, reward, terminated, False, {}
 
     def _name_of_a_card_by_number(self, card):
@@ -236,15 +239,19 @@ class Thousand(gym.Env):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.WARNING)
     logging.info("Started in main")
 
     thou = Thousand(render_mode='ansi')
 
-    obs, info = thou.reset(seed=0, options={'players': [SmallestPlayer(), SmallestPlayer()]})
+    obs, info = thou.reset(seed=int(input()), options={'players': [SmallestPlayer(), SmallestPlayer()]})
     terminated = False
+    full_reward = 0
     while not terminated:
         print(thou.render())
         action = int(input())
         obs, reward, terminated, trunc, info = thou.step(action)
+        full_reward += reward
         print(reward)
+
+    print(full_reward)
