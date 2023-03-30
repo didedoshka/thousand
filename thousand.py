@@ -60,7 +60,7 @@ class Thousand(gym.Env):
 
     - :attr:`cards` - list of cards
     """
-    metadata = {"render_modes": ["human", "ansi"], "render_fps": 4}
+    metadata = {"render_modes": ["ansi"], "render_fps": 4}
     cards = ['9♠', '9♣', '9♦', '9♥',
              'J♠', 'J♣', 'J♦', 'J♥',
              'Q♠', 'Q♣', 'Q♦', 'Q♥',
