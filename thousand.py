@@ -63,63 +63,6 @@ class Thousand(gym.Env):
         self.render_mode = render_mode
         logging.info(f'render_mode set to {self.render_mode}')
 
-    def reset(self, *, seed=None, options=None):
-        """
-        Resets the environment to an initial internal state, returning an initial observation and info.
-        Args:
-            options: dict containing two players inherited from Player class. Their incorrect moves will be replaced with random correct ones
-            :param *:
-        """
-        super().reset(seed=seed)
-
-        self.players = options['players']
-        logging.info(f'players set to {self.players}')
-
-        deck_of_cards = np.arange(24)
-        self.np_random.shuffle(deck_of_cards)
-
-        self.players_cards = [sorted(deck_of_cards[0:8]), sorted(deck_of_cards[8:16]), sorted(deck_of_cards[16:24])]
-        logging.info(f'players_cards set to {self.players_cards}')
-
-        self.turn = self.np_random.integers(3)
-        logging.info(f'turn set to {self.turn}')
-
-        self.played_cards = []
-        self.trump = None
-        self.last = None
-
-        self.cards_on_desk = []
-
-        self._play_until_agent()
-
-        observation = self._get_observation()
-
-        return observation, {}
-
-    def _play_until_agent(self):
-        rewards = []
-        while self.turn != 2:
-            rewards.append(self._proceed_a_move(self._make_a_move()))
-        return rewards
-
-    def _get_suit(self, card):
-        return card % 4
-
-    def _correct_moves(self):
-        player_cards = self.players_cards[self.turn]
-        if len(self.cards_on_desk) == 0:
-            return player_cards
-        player_cards_by_suits = {0: [], 1: [], 2: [], 3: []}
-        for card in player_cards:
-            player_cards_by_suits[self._get_suit(card)].append(card)
-
-        first_card_suit = self._get_suit(self.cards_on_desk[0])
-        if len(player_cards_by_suits[first_card_suit]) != 0:
-            return player_cards_by_suits[first_card_suit]
-        if self.trump is not None and len(player_cards_by_suits[self.trump]) != 0:
-            return player_cards_by_suits[self.trump]
-        return player_cards
-
     def _is_marriage(self, move):
         if move < 8 or move >= 16:
             return False
@@ -128,6 +71,9 @@ class Thousand(gym.Env):
         if move >= 12 and (move - 4) in self.players_cards[self.turn]:
             return True
         return False
+
+    def _get_suit(self, card):
+        return card % 4
 
     def _get_winner(self):
         same_suit_as_first = [(self.cards_on_desk[0], 0)]
@@ -174,32 +120,33 @@ class Thousand(gym.Env):
 
         return reward
 
+    def _play_until_agent(self):
+        rewards = []
+        while self.turn != 2:
+            rewards.append(self._proceed_a_move(self._make_a_move()))
+        return rewards
+
+    def _correct_moves(self):
+        player_cards = self.players_cards[self.turn]
+        if len(self.cards_on_desk) == 0:
+            return player_cards
+        player_cards_by_suits = {0: [], 1: [], 2: [], 3: []}
+        for card in player_cards:
+            player_cards_by_suits[self._get_suit(card)].append(card)
+
+        first_card_suit = self._get_suit(self.cards_on_desk[0])
+        if len(player_cards_by_suits[first_card_suit]) != 0:
+            return player_cards_by_suits[first_card_suit]
+        if self.trump is not None and len(player_cards_by_suits[self.trump]) != 0:
+            return player_cards_by_suits[self.trump]
+        return player_cards
+
     def _make_a_move(self):
         move = self.players[self.turn].make_a_move(self._get_observation())
         correct_moves = self._correct_moves()
         if move not in correct_moves:
             move = self.np_random.choice(correct_moves)
         return move
-
-    def step(self, action):
-        correct_moves = self._correct_moves()
-        if action not in correct_moves:
-            observation = self._get_observation()
-            return observation, -10, False, False, {}
-        rewards = [self._proceed_a_move(action)]
-        rewards += self._play_until_agent()
-        reward = 0
-
-        for pl, r in rewards:
-            if pl == 2:
-                reward += r
-
-        observation = self._get_observation()
-        terminated = self._is_terminated()
-        return observation, reward, terminated, False, {}
-
-    def _is_terminated(self):
-        return len(self.played_cards) == 24
 
     def _get_observation(self):
         observation = np.zeros(25, dtype=int)
@@ -217,6 +164,59 @@ class Thousand(gym.Env):
         logging.info(f'observation for player{self.turn} is {observation}')
 
         return observation
+
+    def reset(self, *, seed=None, options=None):
+        """
+        Resets the environment to an initial internal state, returning an initial observation and info.
+        Args:
+            options: dict containing two players inherited from Player class. Their incorrect moves will be replaced with random correct ones
+            :param *:
+        """
+        super().reset(seed=seed)
+
+        self.players = options['players']
+        logging.info(f'players set to {self.players}')
+
+        deck_of_cards = np.arange(24)
+        self.np_random.shuffle(deck_of_cards)
+
+        self.players_cards = [sorted(deck_of_cards[0:8]), sorted(deck_of_cards[8:16]), sorted(deck_of_cards[16:24])]
+        logging.info(f'players_cards set to {self.players_cards}')
+
+        self.turn = self.np_random.integers(3)
+        logging.info(f'turn set to {self.turn}')
+
+        self.played_cards = []
+        self.trump = None
+        self.last = None
+
+        self.cards_on_desk = []
+
+        self._play_until_agent()
+
+        observation = self._get_observation()
+
+        return observation, {}
+
+    def _is_terminated(self):
+        return len(self.played_cards) == 24
+
+    def step(self, action):
+        correct_moves = self._correct_moves()
+        if action not in correct_moves:
+            observation = self._get_observation()
+            return observation, -10, False, False, {}
+        rewards = [self._proceed_a_move(action)]
+        rewards += self._play_until_agent()
+        reward = 0
+
+        for pl, r in rewards:
+            if pl == 2:
+                reward += r
+
+        observation = self._get_observation()
+        terminated = self._is_terminated()
+        return observation, reward, terminated, False, {}
 
     def _name_of_a_card_by_number(self, card):
         return self.cards[card]
