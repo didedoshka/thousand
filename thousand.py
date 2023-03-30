@@ -120,9 +120,12 @@ class Thousand(gym.Env):
 
         return reward
 
+    def _is_terminated(self):
+        return len(self.played_cards) == 24
+
     def _play_until_agent(self):
         rewards = []
-        while self.turn != 2:
+        while self.turn != 2 and not self._is_terminated():
             rewards.append(self._proceed_a_move(self._make_a_move()))
         return rewards
 
@@ -146,11 +149,14 @@ class Thousand(gym.Env):
         correct_moves = self._correct_moves()
         if move not in correct_moves:
             logging.warning(f'move {move} of player{self.turn} was incorrect')
+            logging.warning(f'correct moves are {correct_moves}')
+            logging.warning(f'player{self.turn} cards are {self.players_cards[self.turn]}')
+            logging.warning(f'len of played cards is {len(self.played_cards)}')
             move = self.np_random.choice(correct_moves)
         return move
 
     def _get_observation(self):
-        observation = np.zeros(25, dtype=int)
+        observation = np.zeros(26, dtype=int)
         for card in self.players_cards[self.turn]:
             observation[card] = 1
         for card in self.played_cards:
@@ -160,7 +166,8 @@ class Thousand(gym.Env):
         if len(self.cards_on_desk) >= 2:
             observation[self.cards_on_desk[1]] = 4
 
-        observation[24] = self.turn == self.last
+        observation[24] = 0 if self.trump is None else self.trump + 1
+        observation[25] = (self.turn == self.last)
 
         logging.info(f'observation for player{self.turn} is {observation}')
 
@@ -198,9 +205,6 @@ class Thousand(gym.Env):
         observation = self._get_observation()
 
         return observation, {}
-
-    def _is_terminated(self):
-        return len(self.played_cards) == 24
 
     def step(self, action):
         correct_moves = self._correct_moves()
