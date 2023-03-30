@@ -1,4 +1,4 @@
-from thousand.thousand import GridWorldEnv
+from thousand.thousand import Thousand, Player
 
 from gymnasium.envs.registration import register
 
