@@ -67,7 +67,7 @@ class Thousand(gym.Env):
              'K♠', 'K♣', 'K♦', 'K♥',
              '10♠', '10♣', '10♦', '10♥',
              'A♠', 'A♣', 'A♦', 'A♥']
-    suits = ['S', 'C', 'D', 'H']
+    suits = ['♠', '♣', '♦', '♥']
     marriage_reward = [40, 60, 80, 100]
     card_reward = [0, 2, 3, 4, 10, 11]
 
@@ -125,11 +125,13 @@ class Thousand(gym.Env):
         logging.info(f'card {move} removed from player{self.turn} {self.players_cards[self.turn]}')
         if len(self.cards_on_desk) == 1 and self._is_marriage(move) and self.turn == self.last:
             reward = (self.turn, self.marriage_reward[self._get_suit(move)])
+            self.rewards[reward[0]] += reward[1]
             self.trump = self._get_suit(move)
         if len(self.cards_on_desk) == 3:
             winner = self._get_winner()
             i_of_winner = ((self.turn - 2 + winner) + 3) % 3
             reward = (i_of_winner, self._count_reward())
+            self.rewards[reward[0]] += reward[1]
             self.played_cards += self.cards_on_desk
             self.cards_on_desk = []
             self.last = i_of_winner
@@ -168,9 +170,6 @@ class Thousand(gym.Env):
         correct_moves = self._correct_moves()
         if move not in correct_moves:
             logging.warning(f'move {move} of player{self.turn} was incorrect')
-            logging.warning(f'correct moves are {correct_moves}')
-            logging.warning(f'player{self.turn} cards are {self.players_cards[self.turn]}')
-            logging.warning(f'len of played cards is {len(self.played_cards)}')
             move = self.np_random.choice(correct_moves)
         return move
 
@@ -219,6 +218,8 @@ class Thousand(gym.Env):
 
         self.cards_on_desk = []
 
+        self.rewards = [0, 0, 0]
+
         self._play_until_agent()
 
         observation = self._get_observation()
@@ -250,6 +251,8 @@ class Thousand(gym.Env):
     def render(self):
         rendering_view = f"""
         last trick was won by {self.last}
+        
+        current rewards = {self.rewards}
         
         player0 cards = {[(self._name_of_a_card_by_number(i), i) for i in self.players_cards[0]]}
         player1 cards = {[(self._name_of_a_card_by_number(i), i) for i in self.players_cards[1]]}
