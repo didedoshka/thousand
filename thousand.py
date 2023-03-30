@@ -28,7 +28,7 @@ class Thousand(gym.Env):
 
     Attributes
 
-    - :attr:`observation_space` - gym.MulitDiscrete
+    - :attr:`observation_space` - gym.MultiDiscrete
         First 24 values correspond to cards. Possible values
 
         - 0 if never seen
@@ -38,7 +38,26 @@ class Thousand(gym.Env):
         - 4 if second on table.
 
         25th value corresponds to trump
+
+        - 0 is None
+        - 1 is ♠
+        - 2 is ♣
+        - 3 is ♦
+        - 4 is ♥
+
         26th value corresponds to whether or not last trick was taken
+
+        - 0 if wasn't
+        - 1 if was
+
+    - :attr:`action_space` - gym.Discrete with one of 24 values corresponding to cards accordingly to cards list
+
+    - :attr:`suits` - list of suits
+
+    - :attr:`marriage_reward` - rewards for different marriages
+
+    - :attr:`card_reward` - points each card is worth
+
     - :attr:`cards` - list of cards
     """
     metadata = {"render_modes": ["human", "ansi"], "render_fps": 4}
@@ -53,7 +72,7 @@ class Thousand(gym.Env):
     card_reward = [0, 2, 3, 4, 10, 11]
 
     def __init__(self, render_mode=None):
-        self.observation_space = spaces.MultiDiscrete([5] * 24 + [4] + [2])
+        self.observation_space = spaces.MultiDiscrete([5] * 24 + [5] + [2])
         logging.info(f'observation_space set to {self.observation_space}')
 
         self.action_space = spaces.Discrete(24)
