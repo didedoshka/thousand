@@ -191,12 +191,20 @@ class Thousand(gym.Env):
 
         return observation
 
+    def _get_info(self):
+        return {
+            "correct_moves": self._correct_moves()
+        }
+
     def reset(self, *, seed=None, options=None):
         """
         Resets the environment to an initial internal state, returning an initial observation and info.
         Args:
             options: dict containing two players inherited from Player class. Their incorrect moves will be replaced with random correct ones
-            :param *:
+
+        Returns:
+            observation: Observation of the initial state. This will be an element of :attr:`observation_space`
+            info (dict): "correct_moves" contains correct moves in current state
         """
         super().reset(seed=seed)
 
@@ -223,14 +231,24 @@ class Thousand(gym.Env):
         self._play_until_agent()
 
         observation = self._get_observation()
+        info = self._get_info()
 
-        return observation, {}
+        return observation, info
 
     def step(self, action):
+        """
+        Run one timestep of the environment's dynamics using the agent actions.
+        Args:
+            action: an action provided by the agent to update the environment state.
+
+        Returns:
+            observation: An element of the environment's :attr:`observation_space` as the next observation due to the agent actions.
+            info (dict): "correct_moves" contains correct moves in current state
+        """
         correct_moves = self._correct_moves()
         if action not in correct_moves:
             observation = self._get_observation()
-            return observation, -10, False, False, {}
+            return observation, -20, False, False, {}
         rewards = [self._proceed_a_move(action)]
         terminated = self._is_terminated()
         if not terminated:
@@ -243,7 +261,8 @@ class Thousand(gym.Env):
 
         terminated = self._is_terminated()
         observation = self._get_observation()
-        return observation, reward, terminated, False, {}
+        info = self._get_info()
+        return observation, reward, terminated, False, info
 
     def _name_of_a_card_by_number(self, card):
         return self.cards[card]
