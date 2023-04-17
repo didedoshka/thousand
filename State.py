@@ -1,4 +1,4 @@
-from Card import Card
+from thousand.Card import Card
 
 
 class State:

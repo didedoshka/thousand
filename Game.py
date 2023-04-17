@@ -1,5 +1,5 @@
-from Card import Card
-from State import State
+from thousand.Card import Card
+from thousand.State import State
 
 
 class Game():

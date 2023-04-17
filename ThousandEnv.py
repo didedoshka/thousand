@@ -3,13 +3,13 @@ import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
 
-from Card import Card
-from State import State
-from Game import Game
+from thousand.Card import Card
+from thousand.State import State
+from thousand.Game import Game
 from typing import Any
 
 
-class Thousand(gym.Env):
+class ThousandEnv(gym.Env):
     """
     Gym environment for card game "Thousand"
     Second player in the game is the one we train and call "agent"
