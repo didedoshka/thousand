@@ -1,6 +1,6 @@
 class Card:
-    ranks = ['9', 'J', 'Q', 'K', '10', 'A']
-    suits = ['♠', '♣', '♦', '♥']
+    ranks = ('9', 'J', 'Q', 'K', '10', 'A')
+    suits = ('♠', '♣', '♦', '♥')
 
     def __init__(self, card) -> None:
         self.card = card
