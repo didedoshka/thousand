@@ -13,4 +13,3 @@ class Card:
 
     def get_ansi(self) -> str:
         return self.ranks[self.get_rank()] + self.suits[self.get_suit()]
-
