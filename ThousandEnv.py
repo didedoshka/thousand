@@ -43,7 +43,7 @@ class ThousandEnv(gym.Env):
         return rewards
 
     def _make_a_move(self):
-        move = self.players[self.game.state.turn].make_a_move(self._get_observation(), self._get_info())
+        move = Card(self.players[self.game.state.turn].make_a_move(self._get_observation(), self._get_info()))
         correct_moves = self.game.correct_moves()
         if move not in correct_moves:
             move = self.np_random.choice(correct_moves)
@@ -78,7 +78,7 @@ class ThousandEnv(gym.Env):
         return observation
 
     def _get_info(self):
-        return {"correct_moves": self.game.correct_moves()}
+        return {"correct_moves": [s.card for s in self.game.correct_moves()]}
 
     def reset(self, *, seed: int | None = None, options: dict[str, Any] | None = None):
         """

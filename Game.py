@@ -36,7 +36,7 @@ class Game():
         return self.marriage_reward[card.get_suit()]
 
     def get_reward_for_rank(self, card: Card) -> int:
-        return self.rank_reward[card.get_suit()]
+        return self.rank_reward[card.get_rank()]
 
     def get_winner(self) -> int:
         assert len(self.state.cards_on_desk) == 3, 'there should be three cards in order to find a winner'
@@ -58,7 +58,7 @@ class Game():
     def count_reward(self) -> int:
         reward = 0
         for card in self.state.cards_on_desk:
-            reward += self.get_reward_for_rank(card.get_rank())
+            reward += self.get_reward_for_rank(card)
         return reward
 
     def proceed_a_move(self, move: Card) -> tuple[int | None, int]:
