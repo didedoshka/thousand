@@ -13,3 +13,12 @@ class Card:
 
     def get_ansi(self) -> str:
         return self.ranks[self.get_rank()] + self.suits[self.get_suit()]
+
+    def __lt__(self, another):
+        return self.card < another.card
+
+    def __eq__(self, another):
+        return self.card == another.card
+
+    def __le__(self, another):
+        return self.card <= another.card
