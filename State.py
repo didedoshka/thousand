@@ -8,7 +8,8 @@ class State:
         self.turn = turn
         self.trump: int | None = None
         self.last: int | None = None
-        self.cards_on_desk = []
+        self.cards_on_desk: list[Card] = []
+        self.terminated = False
 
     def get_ansi(self):
         from textwrap import dedent

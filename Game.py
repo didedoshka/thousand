@@ -77,5 +77,7 @@ class Game():
             self.state.turn = i_of_winner
         else:
             self.state.turn = (self.state.turn + 1) % 3
-
+        
+        if len(self.state.players_cards[0]) + len(self.state.players_cards[1]) + len(self.state.players_cards[2]) == 0:
+            self.state.terminated = True
         return reward
