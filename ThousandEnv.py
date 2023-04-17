@@ -33,20 +33,19 @@ class Thousand(gym.Env):
 
         self.render_mode = render_mode
 
-    def _is_terminated(self):
-        return len(self.played_cards) == 24
+    def _is_terminated(self) -> bool:
+        return self.game.state.terminated
 
-    def _play_until_agent(self):
+    def _play_until_agent(self) -> list[tuple[int | None, int]]:
         rewards = []
-        while self.turn != 2 and not self._is_terminated():
-            rewards.append(self._proceed_a_move(self._make_a_move()))
+        while self.game.state.turn != 2 and not self._is_terminated():
+            rewards.append(self.game.proceed_a_move(self._make_a_move()))
         return rewards
 
     def _make_a_move(self):
-        move = self.players[self.turn].make_a_move(self._get_observation(), self._get_info())
-        correct_moves = self._correct_moves()
+        move = self.players[self.game.state.turn].make_a_move(self._get_observation(), self._get_info())
+        correct_moves = self.game.correct_moves()
         if move not in correct_moves:
-            logging.warning(f'move {move} of player{self.turn} was incorrect')
             move = self.np_random.choice(correct_moves)
         return move
 
@@ -80,17 +79,14 @@ class Thousand(gym.Env):
                          [Card(s) for s in sorted(deck_of_cards[16:24])]]
         turn = self.np_random.integers(3)
         self.game = Game(State(players_cards, turn))
-
-        self.rewards = [0, 0, 0]
-
-        self._play_until_agent()
+        self.rewards: list[tuple[int | None, int]] = self._play_until_agent()
 
         observation = self._get_observation()
         info = self._get_info()
 
         return observation, info
 
-    def step(self, action):
+    def step(self, action: int):
         """
         Run one timestep of the environment's dynamics using the agent actions.
         Args:
@@ -100,45 +96,35 @@ class Thousand(gym.Env):
             observation: An element of the environment's :attr:`observation_space` as the next observation due to the agent actions.
             info (dict): "correct_moves" contains correct moves in current state
         """
-        correct_moves = self._correct_moves()
-        if action not in correct_moves:
+        move = Card(action)
+        correct_moves = self.game.correct_moves()
+        if move not in correct_moves:
             observation = self._get_observation()
-            return observation, -5, False, False, {}
-        rewards = [self._proceed_a_move(action)]
+            info = self._get_info()
+            return observation, -5, False, False, info
+        current_rewards = [self.game.proceed_a_move(move)]
         terminated = self._is_terminated()
         if not terminated:
-            rewards += self._play_until_agent()
-        reward = 0
+            current_rewards += self._play_until_agent()
 
-        for player, one_reward in rewards:
+        second_player_reward = 0
+
+        for player, amount in current_rewards:
             if player == 2:
-                reward += one_reward
+                second_player_reward += amount
+
+        self.rewards += current_rewards
 
         terminated = self._is_terminated()
         observation = self._get_observation()
         info = self._get_info()
-        return observation, reward, terminated, False, info
+        return observation, second_player_reward, terminated, False, info
 
     def render(self):
-        rendering_view = f"""
-        last trick was won by {self.last}
-        
-        current rewards = {self.rewards}
-        
-        player0 cards = {[(self._name_of_a_card_by_number(i), i) for i in self.players_cards[0]]}
-        player1 cards = {[(self._name_of_a_card_by_number(i), i) for i in self.players_cards[1]]}
-        player2 cards = {[(self._name_of_a_card_by_number(i), i) for i in self.players_cards[2]]}
-        
-        cards on desk = {[self._name_of_a_card_by_number(i) for i in self.cards_on_desk]}
-        """
-
-        return rendering_view
+        return self.game.state.get_ansi()
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.WARNING)
-    logging.info("Started in main")
-
     thou = Thousand(render_mode='ansi')
 
     obs, info = thou.reset(seed=int(input()), options={'players': [Player(), Player()]})
