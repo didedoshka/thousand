@@ -10,15 +10,8 @@ from abc import ABC, abstractmethod
 
 class Player():
     @abstractmethod
-    def make_a_move(self, observation):
+    def make_a_move(self, observation, info):
         pass
-
-
-class SmallestPlayer(Player):
-    def make_a_move(self, observation):
-        for i in range(0, 24):
-            if observation[i] == 1:
-                return i
 
 
 class Thousand(gym.Env):
@@ -166,7 +159,7 @@ class Thousand(gym.Env):
         return player_cards
 
     def _make_a_move(self):
-        move = self.players[self.turn].make_a_move(self._get_observation())
+        move = self.players[self.turn].make_a_move(self._get_observation(), self._get_info())
         correct_moves = self._correct_moves()
         if move not in correct_moves:
             logging.warning(f'move {move} of player{self.turn} was incorrect')
@@ -248,7 +241,7 @@ class Thousand(gym.Env):
         correct_moves = self._correct_moves()
         if action not in correct_moves:
             observation = self._get_observation()
-            return observation, -20, False, False, {}
+            return observation, -5, False, False, {}
         rewards = [self._proceed_a_move(action)]
         terminated = self._is_terminated()
         if not terminated:
@@ -289,7 +282,7 @@ if __name__ == '__main__':
 
     thou = Thousand(render_mode='ansi')
 
-    obs, info = thou.reset(seed=int(input()), options={'players': [SmallestPlayer(), SmallestPlayer()]})
+    obs, info = thou.reset(seed=int(input()), options={'players': [Player(), Player()]})
     terminated = False
     full_reward = 0
     while not terminated:
