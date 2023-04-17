@@ -28,7 +28,7 @@ class Thousand(gym.Env):
     metadata = {"render_modes": ["ansi"]}
 
     def __init__(self, render_mode: str | None = None):
-        self.observation_space = spaces.MultiDiscrete([2] * 101)
+        self.observation_space = spaces.MultiBinary(101)
         self.action_space = spaces.Discrete(24)
 
         self.render_mode = render_mode
@@ -50,7 +50,31 @@ class Thousand(gym.Env):
         return move
 
     def _get_observation(self):
-        observation = np.zeros(101, dtype=int)
+        observation = np.zeros(101, dtype=bool)
+        for player_card in self.game.state.players_cards[self.game.state.turn]:
+            observation[player_card.card] = 1
+
+        unseen_cards = [0] * 24
+        for player in [0, 1, 2]:
+            for card in self.game.state.players_cards[player]:
+                unseen_cards[card.card] = 1
+
+        for card in range(24):
+            if not unseen_cards[card]:
+                observation[24 + card] = 1
+
+        if len(self.game.state.cards_on_desk) >= 1:
+            observation[2 * 24 + self.game.state.cards_on_desk[0].card] = 1
+
+        if len(self.game.state.cards_on_desk) >= 2:
+            observation[3 * 24 + self.game.state.cards_on_desk[1].card] = 1
+
+        if self.game.state.trump is not None:
+            observation[4 * 24 + self.game.state.trump] = 1
+
+        if self.game.state.last == self.game.state.turn:
+            observation[4 * 24 + 4] = 1
+
         return observation
 
     def _get_info(self):
@@ -121,20 +145,4 @@ class Thousand(gym.Env):
         return observation, second_player_reward, terminated, False, info
 
     def render(self):
-        return self.game.state.get_ansi()
-
-
-if __name__ == '__main__':
-    thou = Thousand(render_mode='ansi')
-
-    obs, info = thou.reset(seed=int(input()), options={'players': [Player(), Player()]})
-    terminated = False
-    full_reward = 0
-    while not terminated:
-        print(thou.render())
-        action = int(input())
-        obs, reward, terminated, trunc, info = thou.step(action)
-        full_reward += reward
-        print(reward)
-
-    print(full_reward)
+        return self.game.state.get_ansi() + f'rewards are {self.rewards}'
