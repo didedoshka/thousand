@@ -27,10 +27,12 @@ class State:
 
     def __hash__(self) -> int:
         h = 0
-        for cards in self.players_cards:
-            h ^= hash(tuple(cards))
+        for i in range(3):
+            h ^= hash((tuple(self.players_cards[i]), i))
         h ^= hash(self.turn)
         h ^= hash(tuple(self.cards_on_desk))
-        h ^= hash(self.last)
-        h ^= hash(self.trump)
+        if self.last is not None:
+            h ^= hash(self.last + 100)
+        if self.trump is not None:
+            h ^= hash(self.trump + 1000)
         return h
