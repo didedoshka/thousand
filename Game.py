@@ -1,6 +1,6 @@
 from thousand.Card import Card
 from thousand.State import State
-
+from copy import deepcopy
 
 class Game():
 
@@ -8,7 +8,7 @@ class Game():
     rank_reward = (0, 2, 3, 4, 10, 11)
 
     def __init__(self, state: State) -> None:
-        self.state = state
+        self.state = deepcopy(state)
 
     def get_state(self) -> State:
         return self.state
