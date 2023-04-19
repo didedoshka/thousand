@@ -22,3 +22,6 @@ class Card:
 
     def __le__(self, another):
         return self.card <= another.card
+
+    def __hash__(self) -> int:
+        return hash(self.card)
