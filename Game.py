@@ -81,3 +81,12 @@ def move(state: State, move: Card):
     if len(next_state.players_cards[0]) + len(next_state.players_cards[1]) + len(next_state.players_cards[2]) == 0:
         next_state.terminated = True
     return next_state, (reward,)
+
+def get_players_rewards(rewards: list[tuple[tuple[int | None, int], ...]]) -> tuple[int, int, int]:
+    players_rewards = [0] * 3
+    for got_reward in rewards:
+        for who, what in got_reward:
+            if who is not None:
+                players_rewards[who] += what
+
+    return tuple(players_rewards)
