@@ -14,6 +14,9 @@ class Card:
     def get_ansi(self) -> str:
         return self.ranks[self.get_rank()] + self.suits[self.get_suit()]
 
+    def __repr__(self) -> str:
+        return self.get_ansi()
+
     def __lt__(self, another):
         return self.card < another.card
 

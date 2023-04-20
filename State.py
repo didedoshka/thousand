@@ -28,13 +28,7 @@ class State:
             """)
 
     def get_minimal_ansi(self):
-        return textwrap.dedent(f"""
-            {[s.get_ansi() for s in self.players_cards[0]]}
-            {[s.get_ansi() for s in self.players_cards[1]]}
-            {[s.get_ansi() for s in self.players_cards[2]]}
-            tu{self.turn}la{self.last if self.last is not None else -1}tr{Card.suits[self.trump] if self.trump is not None else '-'}
-            {[s.get_ansi() for s in self.cards_on_desk]}
-            """)
+        return textwrap.dedent(f"""{[s.get_ansi() for s in self.players_cards[0]]}{[s.get_ansi() for s in self.players_cards[1]]}{[s.get_ansi() for s in self.players_cards[2]]}tu{self.turn}la{self.last if self.last is not None else -1}tr{Card.suits[self.trump] if self.trump is not None else '-'}{[s.get_ansi() for s in self.cards_on_desk]}""")
 
     def __hash__(self) -> int:
         h = 0
