@@ -5,7 +5,7 @@ from gymnasium import spaces
 
 from thousand.Card import Card
 from thousand.State import State
-from thousand.Game import Game
+import thousand.Game as Game
 from typing import Any
 
 
