@@ -1,6 +1,7 @@
 from thousand.Card import Card
 from thousand.State import State
 from copy import deepcopy
+from typing import Optional
 
 marriage_reward = (40, 60, 80, 100)
 rank_reward = (0, 2, 3, 4, 10, 11)
@@ -62,7 +63,7 @@ def count_reward(state) -> int:
 
 def move(state: State, move: Card):
     next_state = deepcopy(state)
-    reward: tuple[int | None, int] = (None, 0)
+    reward: tuple[Optional[int], int] = (None, 0)
     next_state.cards_on_desk.append(move)
     next_state.players_cards[next_state.turn].remove(move)
     if len(next_state.cards_on_desk) == 1 and is_marriage(next_state, move) and next_state.turn == next_state.last:
@@ -82,7 +83,7 @@ def move(state: State, move: Card):
         next_state.terminated = True
     return next_state, (reward,)
 
-def get_players_rewards(rewards: list[tuple[tuple[int | None, int], ...]]) -> tuple[int, int, int]:
+def get_players_rewards(rewards: list[tuple[tuple[Optional[int], int], ...]]) -> tuple[int, int, int]:
     players_rewards = [0] * 3
     for got_reward in rewards:
         for who, what in got_reward:

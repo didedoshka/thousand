@@ -6,7 +6,7 @@ from gymnasium import spaces
 from thousand.Card import Card
 from thousand.State import State
 import thousand.Game as Game
-from typing import Any
+from typing import Any, Optional
 
 
 class ThousandEnv(gym.Env):
@@ -27,7 +27,7 @@ class ThousandEnv(gym.Env):
     """
     metadata = {"render_modes": ["ansi"]}
 
-    def __init__(self, render_mode: str | None = None):
+    def __init__(self, render_mode: Optional[str] = None):
         self.observation_space = spaces.MultiBinary(101)
         self.action_space = spaces.Discrete(24)
 
@@ -36,7 +36,7 @@ class ThousandEnv(gym.Env):
     def _is_terminated(self) -> bool:
         return self.game.state.terminated
 
-    def _play_until_agent(self) -> list[tuple[int | None, int]]:
+    def _play_until_agent(self) -> list[tuple[Optional[int], int]]:
         rewards = []
         while self.game.state.turn != 2 and not self._is_terminated():
             rewards.append(self.game.proceed_a_move(self._make_a_move()))
@@ -80,7 +80,7 @@ class ThousandEnv(gym.Env):
     def _get_info(self):
         return {"correct_moves": [s.card for s in self.game.correct_moves()]}
 
-    def reset(self, *, seed: int | None = None, options: dict[str, Any] | None = None):
+    def reset(self, *, seed: Optional[int] = None, options: dict[str, Any] | None = None):
         """
         Resets the environment to an initial internal state, returning an initial observation and info.
         Parameters
@@ -103,7 +103,7 @@ class ThousandEnv(gym.Env):
                          [Card(s) for s in sorted(deck_of_cards[16:24])]]
         turn = self.np_random.integers(3)
         self.game = Game(State(players_cards, turn))
-        self.rewards: list[tuple[int | None, int]] = self._play_until_agent()
+        self.rewards: list[tuple[Optional[int], int]] = self._play_until_agent()
 
         observation = self._get_observation()
         info = self._get_info()

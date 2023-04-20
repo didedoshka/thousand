@@ -1,6 +1,6 @@
 from thousand.Card import Card
 import textwrap
-
+from typing import Optional
 
 class State:
 
@@ -9,8 +9,8 @@ class State:
     def __init__(self, players_cards: list[list[Card]], turn: int) -> None:
         self.players_cards = players_cards
         self.turn = turn
-        self.trump: int | None = None
-        self.last: int | None = None
+        self.trump: Optional[int] = None
+        self.last: Optional[int] = None
         self.cards_on_desk: list[Card] = []
         self.terminated = False
 
