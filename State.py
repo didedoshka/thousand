@@ -1,7 +1,10 @@
 from thousand.Card import Card
 import textwrap
 
+
 class State:
+
+    number_of_players = 3
 
     def __init__(self, players_cards: list[list[Card]], turn: int) -> None:
         self.players_cards = players_cards
