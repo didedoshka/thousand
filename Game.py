@@ -7,7 +7,7 @@ rank_reward = (0, 2, 3, 4, 10, 11)
 
 
 def correct_moves(state) -> list[Card]:
-    player_cards = state.players_cards[state.turn]
+    player_cards = deepcopy(state.players_cards[state.turn])
     if len(state.cards_on_desk) == 0:
         return player_cards
     player_cards_by_suits = {0: [], 1: [], 2: [], 3: []}
