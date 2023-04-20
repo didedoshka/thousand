@@ -1,5 +1,5 @@
 from thousand.Card import Card
-
+import textwrap
 
 class State:
 
@@ -12,8 +12,7 @@ class State:
         self.terminated = False
 
     def get_ansi(self):
-        from textwrap import dedent
-        return dedent(f"""
+        return textwrap.dedent(f"""
             player0: {[s.get_ansi() for s in self.players_cards[0]]} 
             player1: {[s.get_ansi() for s in self.players_cards[1]]} 
             player2: {[s.get_ansi() for s in self.players_cards[2]]} 
@@ -23,7 +22,16 @@ class State:
             trump: {Card.suits[self.trump] if self.trump is not None else 'nothing'}
 
             cards_on_desk: {[s.get_ansi() for s in self.cards_on_desk]}
-        """)
+            """)
+
+    def get_minimal_ansi(self):
+        return textwrap.dedent(f"""
+            {[s.get_ansi() for s in self.players_cards[0]]}
+            {[s.get_ansi() for s in self.players_cards[1]]}
+            {[s.get_ansi() for s in self.players_cards[2]]}
+            tu{self.turn}la{self.last if self.last is not None else -1}tr{Card.suits[self.trump] if self.trump is not None else '-'}
+            {[s.get_ansi() for s in self.cards_on_desk]}
+            """)
 
     def __hash__(self) -> int:
         h = 0
