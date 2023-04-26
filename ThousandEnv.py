@@ -1,3 +1,4 @@
+from copy import deepcopy
 import numpy as np
 
 import gymnasium as gym
@@ -22,7 +23,7 @@ class ThousandEnv(gym.Env):
     action_space : gym.Discrete 
         24 moves as each card can be a move
 
-    game : Game
+    state : State
         current game state
     """
     metadata = {"render_modes": ["ansi"]}
@@ -34,51 +35,52 @@ class ThousandEnv(gym.Env):
         self.render_mode = render_mode
 
     def _is_terminated(self) -> bool:
-        return self.game.state.terminated
+        return self.state.terminated
 
-    def _play_until_agent(self) -> list[tuple[Optional[int], int]]:
+    def _play_until_agent(self):
         rewards = []
-        while self.game.state.turn != 2 and not self._is_terminated():
-            rewards.append(self.game.proceed_a_move(self._make_a_move()))
+        while self.state.turn != 2 and not self._is_terminated():
+            self.state, reward_series = Game.move(self.state, self._make_a_move())
+            rewards += reward_series
         return rewards
 
     def _make_a_move(self):
-        move = Card(self.players[self.game.state.turn].make_a_move(self._get_observation(), self._get_info()))
-        correct_moves = self.game.correct_moves()
+        move = Card(self.players[self.state.turn].make_a_move(self._get_observation(), self._get_info()))
+        correct_moves = Game.correct_moves(self.state)
         if move not in correct_moves:
             move = self.np_random.choice(correct_moves)
         return move
 
     def _get_observation(self):
         observation = np.zeros(101, dtype=bool)
-        for player_card in self.game.state.players_cards[self.game.state.turn]:
+        for player_card in self.state.players_cards[self.state.turn]:
             observation[player_card.card] = 1
 
         unseen_cards = [0] * 24
         for player in [0, 1, 2]:
-            for card in self.game.state.players_cards[player]:
+            for card in self.state.players_cards[player]:
                 unseen_cards[card.card] = 1
 
         for card in range(24):
             if not unseen_cards[card]:
                 observation[24 + card] = 1
 
-        if len(self.game.state.cards_on_desk) >= 1:
-            observation[2 * 24 + self.game.state.cards_on_desk[0].card] = 1
+        if len(self.state.cards_on_desk) >= 1:
+            observation[2 * 24 + self.state.cards_on_desk[0].card] = 1
 
-        if len(self.game.state.cards_on_desk) >= 2:
-            observation[3 * 24 + self.game.state.cards_on_desk[1].card] = 1
+        if len(self.state.cards_on_desk) >= 2:
+            observation[3 * 24 + self.state.cards_on_desk[1].card] = 1
 
-        if self.game.state.trump is not None:
-            observation[4 * 24 + self.game.state.trump] = 1
+        if self.state.trump is not None:
+            observation[4 * 24 + self.state.trump] = 1
 
-        if self.game.state.last == self.game.state.turn:
+        if self.state.last == self.state.turn:
             observation[4 * 24 + 4] = 1
 
         return observation
 
     def _get_info(self):
-        return {"correct_moves": [s.card for s in self.game.correct_moves()]}
+        return {"correct_moves": [s.card for s in Game.correct_moves(self.state)]}
 
     def reset(self, *, seed: Optional[int] = None, options: dict[str, Any] | None = None):
         """
@@ -102,7 +104,7 @@ class ThousandEnv(gym.Env):
         players_cards = [[Card(s) for s in sorted(deck_of_cards[0:8])], [Card(s) for s in sorted(deck_of_cards[8:16])],
                          [Card(s) for s in sorted(deck_of_cards[16:24])]]
         turn = self.np_random.integers(3)
-        self.game = Game(State(players_cards, turn))
+        self.state = State(players_cards, turn)
         self.rewards: list[tuple[Optional[int], int]] = self._play_until_agent()
 
         observation = self._get_observation()
@@ -121,12 +123,13 @@ class ThousandEnv(gym.Env):
             info (dict): "correct_moves" contains correct moves in current state
         """
         move = Card(action)
-        correct_moves = self.game.correct_moves()
+        correct_moves = Game.correct_moves(self.state)
         if move not in correct_moves:
             observation = self._get_observation()
             info = self._get_info()
             return observation, -5, False, False, info
-        current_rewards = [self.game.proceed_a_move(move)]
+        self.state, reward_series = Game.move(self.state, move)
+        current_rewards = deepcopy(reward_series)
         terminated = self._is_terminated()
         if not terminated:
             current_rewards += self._play_until_agent()
@@ -145,4 +148,4 @@ class ThousandEnv(gym.Env):
         return observation, second_player_reward, terminated, False, info
 
     def render(self):
-        return self.game.state.get_ansi() + f'rewards are {self.rewards}'
+        return self.state.get_ansi() + f'rewards are {self.rewards}'

@@ -61,7 +61,7 @@ def count_reward(state) -> int:
     return reward
 
 
-def move(state: State, move: Card):
+def move(state: State, move: Card) -> tuple[State, list[tuple[Optional[int], int]]]:
     next_state = deepcopy(state)
     reward: tuple[Optional[int], int] = (None, 0)
     next_state.cards_on_desk.append(move)
@@ -81,7 +81,7 @@ def move(state: State, move: Card):
 
     if len(next_state.players_cards[0]) + len(next_state.players_cards[1]) + len(next_state.players_cards[2]) == 0:
         next_state.terminated = True
-    return next_state, (reward,)
+    return next_state, [reward]
 
 def get_players_rewards(rewards: list[tuple[tuple[Optional[int], int], ...]]) -> tuple[int, int, int]:
     players_rewards = [0] * 3
