@@ -148,4 +148,4 @@ class ThousandEnv(gym.Env):
         return observation, second_player_reward, terminated, False, info
 
     def render(self):
-        return self.state.get_ansi() + f'rewards are {self.rewards}'
+        return self.state.get_ansi() + f'rewards are {Game.get_players_rewards(self.rewards)}'
